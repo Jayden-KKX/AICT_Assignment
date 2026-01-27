@@ -8,3 +8,5 @@ Paya Lebar,Marina Bay,5.6,8.4,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 5.6 km
 Bedok,Bugis,8.64,12.95,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 8.64 km,(8.64 km ÷ 40 km/h) × 60 = 12.95 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
 Sungei Bedok,Outram Park,13.15,19.73,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 13.15 km,(13.15 km ÷ 40 km/h) × 60 = 19.73 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
 Marine Parade,City Hall,6.84,10.27,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 6.84 km,(6.84 km ÷ 40 km/h) × 60 = 10.27 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Changi Airport,Changi Terminal 5,2.0,3.0,sqrt((x1-x2)² + (y1-y2)²) × 111,3.0 min,Yes,Straight-line distance is minimum,"A*, Greedy BFS"
+Sungei Bedok,Changi Terminal 5,2.8,4.2,sqrt((x1-x2)² + (y1-y2)²) × 111,4.2 min,Yes,Straight-line distance is minimum,"A*, Greedy BFS"

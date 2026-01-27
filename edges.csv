@@ -32,3 +32,6 @@ Edge_ID,From_Station,To_Station,Line,Distance_KM,Base_Travel_Time_Min,Transfer_P
 31,Katong Park,Gardens by the Bay,TEL,4.28,4,0,0,4,(4.3 km ÷ 40 km/h) × 60 ≈ 4 min,40,Yes,Calculated from LTA station coordinates
 32,Gardens by the Bay,Marina Bay,TEL,0.8,2,0,0,2,(0.8 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
 33,Marina Bay,Outram Park,TEL,2.7,3,0,0,3,(2.7 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+34,Sungei Bedok,Changi Terminal 5,TEL,2.5,4,0,0,4,TELe Extension,40,Yes,Assignment Brief
+35,Changi Terminal 5,Tanah Merah,TEL,3.0,5,0,0,5,TELe Extension,40,Yes,Assignment Brief
+36,Changi Terminal 5,Expo,TEL,2.8,4,0,0,4,CRL Alignment,40,Yes,LTA Announcement

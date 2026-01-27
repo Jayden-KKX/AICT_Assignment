@@ -29,3 +29,4 @@ Node_ID,Station_Name,Station_Code,Line,Latitude,Longitude,Station_Type,Is_Interc
 28,Tanjong Pagar,EW15,EWL,1.276,103.846,Regular,No,0,0,LTA Official Maps & DataMall
 29,Ubi,DT27,DTL,1.33,103.9,Regular,No,0,0,LTA Official Maps & DataMall
 30,Xilin,DT36,DTL,1.337,103.968,Regular,No,0,0,LTA Official Maps & DataMall
+31,Changi Terminal 5,TE32/CR1,TEL/CRL,1.345,103.975,Interchange,Yes,3,0,LTA Future Announcement
