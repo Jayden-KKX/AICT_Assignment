@@ -1,0 +1,34 @@
+Edge_ID,From_Station,To_Station,Line,Distance_KM,Base_Travel_Time_Min,Transfer_Penalty_Min,Crowding_Penalty_Min,Total_Edge_Weight_Min,Calculation,Speed_Assumption_KMH,Bidirectional,Data_Source
+1,Changi Airport,Expo,EWL,3.95,5,0,0,5,(4.0 km ÷ 40 km/h) × 60 ≈ 5 min,40,Yes,Calculated from LTA station coordinates
+2,Expo,Tanah Merah,EWL,1.89,3,0,0,3,(1.9 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+3,Tanah Merah,Simei,EWL,1.94,2,0,0,2,(1.9 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+4,Simei,Pasir Ris,EWL,3.36,2,0,0,2,(3.4 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+5,Tanah Merah,Bedok,EWL,1.81,3,0,0,3,(1.8 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+6,Bedok,Kembangan,EWL,1.92,2,0,0,2,(1.9 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+7,Kembangan,Eunos,EWL,1.12,2,0,0,2,(1.1 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+8,Eunos,Paya Lebar,EWL,1.24,2,0,0,2,(1.2 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+9,Paya Lebar,Aljunied,EWL,1.02,2,0,0,2,(1.0 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+10,Aljunied,Kallang,EWL,1.44,2,0,0,2,(1.4 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+11,Kallang,Lavender,EWL,0.99,2,0,0,2,(1.0 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+12,Lavender,Bugis,EWL,1.1,2,0,0,2,(1.1 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+13,Bugis,City Hall,EWL,0.89,2,0,0,2,(0.9 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+14,City Hall,Raffles Place,EWL,1.01,2,0,0,2,(1.0 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+15,Raffles Place,Tanjong Pagar,EWL,1.05,2,0,0,2,(1.0 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+16,Tanjong Pagar,Outram Park,EWL,0.8,2,0,0,2,(0.8 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+17,Expo,Xilin,DTL,0.81,2,0,0,2,(0.8 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+18,Xilin,Sungei Bedok,DTL,2.46,2,0,0,2,(2.5 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+19,Sungei Bedok,Bedok North,DTL,3.76,3,0,0,3,(3.8 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+20,Bedok North,Ubi,DTL,2.07,3,0,0,3,(2.1 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+21,Ubi,MacPherson,DTL,1.16,2,0,0,2,(1.2 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+22,MacPherson,Paya Lebar,DTL,1.02,2,0,0,2,(1.0 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+23,MacPherson,Bendemeer,DTL,3.33,3,0,0,3,(3.3 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+24,Bendemeer,Bugis,DTL,1.74,3,0,0,3,(1.7 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+25,Bugis,Chinatown,DTL,2.22,3,0,0,3,(2.2 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates
+26,Chinatown,Outram Park,DTL,0.63,2,0,0,2,(0.6 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+27,Sungei Bedok,Bedok South,TEL,0.65,2,0,0,2,(0.6 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+28,Bedok South,Bayshore,TEL,0.74,2,0,0,2,(0.7 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+29,Bayshore,Marine Parade,TEL,3.39,2,0,0,2,(3.4 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+30,Marine Parade,Katong Park,TEL,1.13,2,0,0,2,(1.1 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+31,Katong Park,Gardens by the Bay,TEL,4.28,4,0,0,4,(4.3 km ÷ 40 km/h) × 60 ≈ 4 min,40,Yes,Calculated from LTA station coordinates
+32,Gardens by the Bay,Marina Bay,TEL,0.8,2,0,0,2,(0.8 km ÷ 40 km/h) × 60 ≈ 2 min,40,Yes,Calculated from LTA station coordinates
+33,Marina Bay,Outram Park,TEL,2.7,3,0,0,3,(2.7 km ÷ 40 km/h) × 60 ≈ 3 min,40,Yes,Calculated from LTA station coordinates

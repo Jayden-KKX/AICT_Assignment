@@ -1,0 +1,5 @@
+Algorithm,Full_Name,Uses_Edge_Weights,Uses_Heuristic,Guarantees_Optimal,Time_Complexity,Space_Complexity,Best_For
+BFS,Breadth-First Search,No,No,Yes (by number of stations),O(V + E),O(V),Finding route with fewest stations
+DFS,Depth-First Search,No,No,No,O(V + E),O(V),Not recommended for route planning
+Greedy BFS,Greedy Best-First Search,No,Yes (h only),No,O(E log V),O(V),Fast approximate solutions
+A*,A* Search,Yes,Yes (g + h),Yes (with admissible heuristic),O(E log V),O(V),Optimal route planning (recommended)

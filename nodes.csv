@@ -1,0 +1,31 @@
+Node_ID,Station_Name,Station_Code,Line,Latitude,Longitude,Station_Type,Is_Interchange,Transfer_Penalty_Min,Crowding_Penalty_Min,Data_Source
+1,Aljunied,EW9,EWL,1.316,103.883,Regular,No,0,0,LTA Official Maps & DataMall
+2,Bayshore,TE29,TEL,1.318,103.939,Regular,No,0,0,LTA Official Maps & DataMall
+3,Bedok,EW5,EWL,1.324,103.93,Regular,No,0,0,LTA Official Maps & DataMall
+4,Bedok North,DT29,DTL,1.335,103.918,Regular,No,0,0,LTA Official Maps & DataMall
+5,Bedok South,TE30,TEL,1.321,103.945,Regular,No,0,0,LTA Official Maps & DataMall
+6,Bendemeer,DT23,DTL,1.314,103.863,Regular,No,0,0,LTA Official Maps & DataMall
+7,Bugis,EW12/DT14,EWL/DTL,1.3,103.856,Interchange,Yes,3,0,LTA Official Maps & DataMall
+8,Changi Airport,CG2,EWL,1.357,103.989,Regular,No,0,0,LTA Official Maps & DataMall
+9,Chinatown,DT19/NE4,DTL/NEL,1.284,103.844,Interchange,Yes,3,0,LTA Official Maps & DataMall
+10,City Hall,EW13/NS25,EWL/NSL,1.293,103.852,Interchange,Yes,3,0,LTA Official Maps & DataMall
+11,Eunos,EW7,EWL,1.32,103.903,Regular,No,0,0,LTA Official Maps & DataMall
+12,Expo,CG1/DT35,EWL/DTL,1.335,103.961,Interchange,Yes,3,0,LTA Official Maps & DataMall
+13,Gardens by the Bay,TE22/DT18,TEL/DTL,1.28,103.87,Interchange,Yes,3,0,LTA Official Maps & DataMall
+14,Kallang,EW10,EWL,1.311,103.871,Regular,No,0,0,LTA Official Maps & DataMall
+15,Katong Park,TE24,TEL,1.3,103.903,Regular,No,0,0,LTA Official Maps & DataMall
+16,Kembangan,EW6,EWL,1.321,103.913,Regular,No,0,0,LTA Official Maps & DataMall
+17,Lavender,EW11,EWL,1.307,103.863,Regular,No,0,0,LTA Official Maps & DataMall
+18,MacPherson,DT26/CC10,DTL/CCL,1.327,103.89,Interchange,Yes,3,0,LTA Official Maps & DataMall
+19,Marina Bay,TE20/NS27/CE2,TEL/NSL/CEL,1.276,103.864,Interchange,Yes,3,0,LTA Official Maps & DataMall
+20,Marine Parade,TE26,TEL,1.302,103.913,Regular,No,0,0,LTA Official Maps & DataMall
+21,Outram Park,EW16/NE3/DT19/TE17,EWL/NEL/DTL/TEL,1.28,103.84,Major Interchange,Yes,3,0,LTA Official Maps & DataMall
+22,Pasir Ris,EW1,EWL,1.373,103.949,Regular,No,0,0,LTA Official Maps & DataMall
+23,Paya Lebar,EW8/CC9,EWL/CCL,1.318,103.892,Interchange,Yes,3,0,LTA Official Maps & DataMall
+24,Raffles Place,EW14/NS26,EWL/NSL,1.284,103.851,Interchange,Yes,3,0,LTA Official Maps & DataMall
+25,Simei,EW3,EWL,1.343,103.953,Regular,No,0,0,LTA Official Maps & DataMall
+26,Sungei Bedok,DT37/TE31,DTL/TEL,1.324,103.95,Interchange,Yes,3,0,LTA Official Maps & DataMall
+27,Tanah Merah,EW4,EWL,1.327,103.946,Branch,No,0,0,LTA Official Maps & DataMall
+28,Tanjong Pagar,EW15,EWL,1.276,103.846,Regular,No,0,0,LTA Official Maps & DataMall
+29,Ubi,DT27,DTL,1.33,103.9,Regular,No,0,0,LTA Official Maps & DataMall
+30,Xilin,DT36,DTL,1.337,103.968,Regular,No,0,0,LTA Official Maps & DataMall

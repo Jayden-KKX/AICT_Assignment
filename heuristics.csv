@@ -1,0 +1,10 @@
+Origin,Destination,Straight_Line_Distance_KM,Heuristic_Time_Min,Formula,Time_Calculation,Is_Admissible,Admissibility_Note,Used_By_Algorithms
+Changi Airport,City Hall,16.78,25.18,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 16.78 km,(16.78 km ÷ 40 km/h) × 60 = 25.18 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Changi Airport,Outram Park,18.62,27.93,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 18.62 km,(18.62 km ÷ 40 km/h) × 60 = 27.93 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Changi Airport,Raffles Place,17.33,25.99,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 17.33 km,(17.33 km ÷ 40 km/h) × 60 = 25.99 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Pasir Ris,Outram Park,15.9,23.86,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 15.9 km,(15.9 km ÷ 40 km/h) × 60 = 23.86 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Paya Lebar,Chinatown,6.53,9.79,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 6.53 km,(6.53 km ÷ 40 km/h) × 60 = 9.79 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Paya Lebar,Marina Bay,5.6,8.4,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 5.6 km,(5.6 km ÷ 40 km/h) × 60 = 8.4 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Bedok,Bugis,8.64,12.95,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 8.64 km,(8.64 km ÷ 40 km/h) × 60 = 12.95 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Sungei Bedok,Outram Park,13.15,19.73,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 13.15 km,(13.15 km ÷ 40 km/h) × 60 = 19.73 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"
+Marine Parade,City Hall,6.84,10.27,sqrt((x1-x2)² + (y1-y2)²) × 111 km/deg = 6.84 km,(6.84 km ÷ 40 km/h) × 60 = 10.27 min,Yes,Straight-line distance ≤ actual path distance,"Greedy BFS, A*"

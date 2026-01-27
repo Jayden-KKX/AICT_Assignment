@@ -1,0 +1,8 @@
+Category,Field,Value,Description
+NETWORK_METADATA,Total_Stations,30,Number of nodes in the network
+NETWORK_METADATA,Total_Connections,33,Number of edges in the network
+NETWORK_METADATA,Graph_Type,Undirected Weighted Graph,Network structure type
+EDGE_WEIGHT_FORMULA,Base_Time,(Distance_KM ÷ 40) × 60,Travel time calculation in minutes
+EDGE_WEIGHT_FORMULA,Transfer_Penalty,3,Minutes added at interchanges
+HEURISTIC_FORMULA,Distance,sqrt((x1-x2)² + (y1-y2)²) × 111,Straight-line distance in km
+HEURISTIC_FORMULA,Time_Estimate,(Distance_KM ÷ 40) × 60,Estimated time to goal in minutes

@@ -1,0 +1,5 @@
+Parameter,Value,Unit,Description,Source,Used_In
+Average_Speed,40,km/h,Average operational speed of MRT trains,LTA operational data (range: 35-45 km/h),Base travel time calculation
+Transfer_Penalty,3,minutes,Time penalty for changing lines at interchange,Transport studies (typical range: 2-5 minutes),Path cost when changing lines
+Crowding_Penalty_Max,5,minutes,Maximum additional time for crowded stations,LTA passenger volume data (configurable),Optional - can be applied to high-traffic stations
+Coordinate_To_KM_Factor,111,km/degree,Approximate conversion from lat/lon degrees to kilometers,Geographic standard (varies with latitude),Distance and heuristic calculations

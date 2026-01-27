@@ -1,0 +1,31 @@
+id,label,code,lat,lon,type,line,interchange,transfer_penalty,color
+1,Aljunied,EW9,1.316,103.883,Regular,EWL,No,0,#009645
+2,Bayshore,TE29,1.318,103.939,Regular,TEL,No,0,#9D5B25
+3,Bedok,EW5,1.324,103.93,Regular,EWL,No,0,#009645
+4,Bedok North,DT29,1.335,103.918,Regular,DTL,No,0,#005EC4
+5,Bedok South,TE30,1.321,103.945,Regular,TEL,No,0,#9D5B25
+6,Bendemeer,DT23,1.314,103.863,Regular,DTL,No,0,#005EC4
+7,Bugis,EW12/DT14,1.3,103.856,Interchange,EWL/DTL,Yes,3,#009645
+8,Changi Airport,CG2,1.357,103.989,Regular,EWL,No,0,#009645
+9,Chinatown,DT19/NE4,1.284,103.844,Interchange,DTL/NEL,Yes,3,#005EC4
+10,City Hall,EW13/NS25,1.293,103.852,Interchange,EWL/NSL,Yes,3,#009645
+11,Eunos,EW7,1.32,103.903,Regular,EWL,No,0,#009645
+12,Expo,CG1/DT35,1.335,103.961,Interchange,EWL/DTL,Yes,3,#009645
+13,Gardens by the Bay,TE22/DT18,1.28,103.87,Interchange,TEL/DTL,Yes,3,#005EC4
+14,Kallang,EW10,1.311,103.871,Regular,EWL,No,0,#009645
+15,Katong Park,TE24,1.3,103.903,Regular,TEL,No,0,#9D5B25
+16,Kembangan,EW6,1.321,103.913,Regular,EWL,No,0,#009645
+17,Lavender,EW11,1.307,103.863,Regular,EWL,No,0,#009645
+18,MacPherson,DT26/CC10,1.327,103.89,Interchange,DTL/CCL,Yes,3,#005EC4
+19,Marina Bay,TE20/NS27/CE2,1.276,103.864,Interchange,TEL/NSL/CEL,Yes,3,#9D5B25
+20,Marine Parade,TE26,1.302,103.913,Regular,TEL,No,0,#9D5B25
+21,Outram Park,EW16/NE3/DT19/TE17,1.28,103.84,Major Interchange,EWL/NEL/DTL/TEL,Yes,3,#009645
+22,Pasir Ris,EW1,1.373,103.949,Regular,EWL,No,0,#009645
+23,Paya Lebar,EW8/CC9,1.318,103.892,Interchange,EWL/CCL,Yes,3,#009645
+24,Raffles Place,EW14/NS26,1.284,103.851,Interchange,EWL/NSL,Yes,3,#009645
+25,Simei,EW3,1.343,103.953,Regular,EWL,No,0,#009645
+26,Sungei Bedok,DT37/TE31,1.324,103.95,Interchange,DTL/TEL,Yes,3,#005EC4
+27,Tanah Merah,EW4,1.327,103.946,Branch,EWL,No,0,#009645
+28,Tanjong Pagar,EW15,1.276,103.846,Regular,EWL,No,0,#009645
+29,Ubi,DT27,1.33,103.9,Regular,DTL,No,0,#005EC4
+30,Xilin,DT36,1.337,103.968,Regular,DTL,No,0,#005EC4
