@@ -1,0 +1,21 @@
+Logical Inference System:
+- Uses propositional logic with resolution-based inference
+- Rules encoded in Conjunctive Normal Form (CNF)
+- Can detect contradictions in advisory sets
+- Validates routes against operational constraints
+- Supports both Today and Future network modes
+
+Key Rules Implemented:
+1. Systems integration → service adjustments required
+2. Tanah Merah conversion → require alternative paths
+3. TELe operational → Changi accessible via TEL (Future mode)
+4. T5 accessible → both TEL and CRL available (Future mode)
+5. Peak hours → crowding penalties active
+6. Interchange transfer → minimum 3-minute transfer time
+7. Conversion complete → EWL Changi stations become TEL (Future mode)
+
+Limitations:
+- Propositional logic cannot express complex temporal relationships
+- Rule base requires manual encoding of domain knowledge
+- Resolution can be computationally expensive for large rule sets
+- Cannot handle probabilistic or uncertain information

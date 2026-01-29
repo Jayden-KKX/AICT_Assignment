@@ -1,0 +1,47 @@
+ANALYSIS & DISCUSSION
+
+1. BREADTH-FIRST SEARCH (BFS)
+   Advantages:
+   - Guarantees shortest path in terms of number of stations
+   - Systematic level-by-level exploration
+   - Complete: will find solution if it exists
+   Disadvantages:
+   - Does not consider edge costs (travel time)
+   - High memory usage (stores all nodes at current level)
+   - May expand many unnecessary nodes
+
+2. DEPTH-FIRST SEARCH (DFS)
+   Advantages:
+   - Low memory usage (only stores current path)
+   - Fast for finding any solution
+   Disadvantages:
+   - Does NOT guarantee optimal path
+   - May explore very long paths first
+   - Can miss shorter alternatives
+
+3. GREEDY BEST-FIRST SEARCH (GBFS)
+   Advantages:
+   - Uses heuristic to guide search toward goal
+   - Often finds solutions quickly
+   - Expands fewer nodes than uninformed search
+   Disadvantages:
+   - Does NOT guarantee optimal path
+   - Quality depends on heuristic accuracy
+   - Can be misled by heuristic
+
+4. A* SEARCH
+   Advantages:
+   - Guarantees optimal path (with admissible heuristic)
+   - Balances actual cost and heuristic estimate
+   - Most efficient optimal search algorithm
+   Disadvantages:
+   - Requires more memory than GBFS
+   - Slower than GBFS for large networks
+   - Needs good heuristic for best performance
+
+5. TODAY vs FUTURE MODE COMPARISON
+   - Future mode provides direct TEL connection to Changi Airport
+   - T5 interchange (TE32/CR1) enables better connectivity
+   - TELe reduces transfer requirements for many routes
+   - Conversion of EWL Changi branch to TEL integrates network better
+   - Travel times generally reduced in Future mode due to direct connections

@@ -1,0 +1,19 @@
+Bayesian Network Structure:
+- 7 variables with probabilistic dependencies
+- Models relationship between mode, time, station type, and crowding
+- Uses Variable Elimination for exact inference
+- CPTs based on domain knowledge and MRT operational patterns
+
+Key Findings:
+1. Peak hours significantly increase crowding risk across all scenarios
+2. Interchange stations have higher crowding than regular stations
+3. Future mode with major network changes affects passenger flow patterns
+4. T5 availability helps distribute airport passenger load
+5. Off-peak periods show lower crowding regardless of network changes
+
+Limitations:
+- Data sparsity: CPT probabilities are estimates, not real data
+- Discretization: Continuous variables (time, passenger count) discretized
+- Independence assumptions: Some correlated factors may be missed
+- Static model: Does not adapt to dynamic changes during operation
+- Simplified scope: Focuses on subset of factors affecting crowding

@@ -1,0 +1,24 @@
+Optimization Approach: Simulated Annealing
+- Objective: Minimize total travel time across all OD pairs
+- Constraints: Max 3 transfers, avoid disrupted segments
+- State representation: Set of routes for each OD pair
+- Neighborhood moves: Modify one route by finding alternative paths
+- Stopping criteria: Fixed iterations with temperature cooling
+
+Techniques Demonstrated:
+1. Local Search: Iteratively improve solution by exploring neighbors
+2. Hill Climbing: Accept better solutions, restart when stuck
+3. Simulated Annealing: Accept worse solutions probabilistically to escape local minima
+
+Key Results:
+- Optimization successfully finds alternative routes avoiding disruptions
+- Simulated annealing escapes local minima better than hill climbing
+- Re-routing reduces overall travel time despite disruptions
+- Algorithm adapts to different disruption scenarios
+
+Limitations:
+- May get stuck in local minima (though SA helps)
+- Sensitive to penalty parameters (transfer cost, delay cost)
+- Computational cost grows with number of OD pairs
+- Simplified capacity model (no hard capacity constraints)
+- Static optimization (does not adapt in real-time)
