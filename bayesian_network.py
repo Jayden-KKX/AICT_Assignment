@@ -1,10 +1,22 @@
 """
-Bayesian Network for MRT Crowding Risk Prediction
-Implements Variable Elimination for probabilistic inference
+Enhanced Bayesian Network for MRT Crowding Risk Prediction
+Implements Variable Elimination with step-by-step workings
+Interactive scenario testing and probability visualization
 """
 
 from typing import Dict, List, Set, Tuple, Optional
 import itertools
+
+
+class InferenceStep:
+    """Records a step in the inference process"""
+    def __init__(self, step_num: int, action: str, details: Dict):
+        self.step_num = step_num
+        self.action = action  # 'enumerate', 'compute_joint', 'marginalize', 'normalize'
+        self.details = details
+    
+    def __repr__(self):
+        return f"Step {self.step_num}: {self.action} - {self.details}"
 
 
 class ConditionalProbabilityTable:
@@ -18,7 +30,6 @@ class ConditionalProbabilityTable:
             variable: The variable name
             parents: List of parent variable names
             probabilities: Dict mapping parent values to probability distributions
-                          e.g., {('peak', 'future'): {'high': 0.7, 'low': 0.3}}
         """
         self.variable = variable
         self.parents = parents
@@ -27,10 +38,8 @@ class ConditionalProbabilityTable:
     def get_probability(self, var_value: str, parent_values: Dict[str, str]) -> float:
         """Get P(variable=var_value | parent_values)"""
         if not self.parents:
-            # No parents - return marginal probability
             return self.probabilities.get(var_value, 0.0)
         
-        # Build key from parent values
         parent_tuple = tuple(parent_values.get(p, None) for p in self.parents)
         
         if parent_tuple in self.probabilities:
@@ -45,11 +54,26 @@ class ConditionalProbabilityTable:
         
         parent_tuple = tuple(parent_values.get(p, None) for p in self.parents)
         return self.probabilities.get(parent_tuple, {})
+    
+    def print_table(self):
+        """Print the CPT in a readable format"""
+        print(f"\n  CPT for {self.variable}:")
+        if not self.parents:
+            print(f"    (No parents - prior probability)")
+            for value, prob in self.probabilities.items():
+                print(f"      P({self.variable}={value}) = {prob:.3f}")
+        else:
+            print(f"    Parents: {', '.join(self.parents)}")
+            for parent_config, probs in self.probabilities.items():
+                parent_str = ', '.join([f"{p}={v}" for p, v in zip(self.parents, parent_config)])
+                print(f"    Given {parent_str}:")
+                for value, prob in probs.items():
+                    print(f"      P({self.variable}={value}) = {prob:.3f}")
 
 
 class BayesianNetwork:
     """
-    Bayesian Network for crowding risk prediction
+    Enhanced Bayesian Network for crowding risk prediction
     
     Network structure:
     - Mode (Today/Future) → affects T5_Available and Network_Changes
@@ -69,7 +93,7 @@ class BayesianNetwork:
     def _initialize_network(self):
         """Initialize the Bayesian network structure and CPTs"""
         
-        # Define domains (possible values for each variable)
+        # Define domains
         self.domains = {
             'Mode': ['today', 'future'],
             'Time_Of_Day': ['peak', 'off_peak'],
@@ -82,21 +106,19 @@ class BayesianNetwork:
         
         self.variables = set(self.domains.keys())
         
-        # CPT 1: Mode (root node - prior probability)
+        # CPT 1: Mode (root node)
         self.cpts['Mode'] = ConditionalProbabilityTable(
             'Mode', [],
-            {'today': 0.5, 'future': 0.5}  # Equal prior
+            {'today': 0.5, 'future': 0.5}
         )
         
-        # CPT 2: Time_Of_Day (root node - prior probability)
-        # Peak hours: 7-9am, 5-7pm (~4 hours out of 18.5 operating hours)
+        # CPT 2: Time_Of_Day (root node)
         self.cpts['Time_Of_Day'] = ConditionalProbabilityTable(
             'Time_Of_Day', [],
             {'peak': 0.22, 'off_peak': 0.78}
         )
         
-        # CPT 3: Station_Type (root node - prior probability)
-        # Based on the 30 stations: ~6 interchanges, ~3 airport, ~21 regular
+        # CPT 3: Station_Type (root node)
         self.cpts['Station_Type'] = ConditionalProbabilityTable(
             'Station_Type', [],
             {'interchange': 0.20, 'airport': 0.10, 'regular': 0.70}
@@ -106,8 +128,8 @@ class BayesianNetwork:
         self.cpts['T5_Available'] = ConditionalProbabilityTable(
             'T5_Available', ['Mode'],
             {
-                ('today',): {'yes': 0.0, 'no': 1.0},    # T5 not available in today mode
-                ('future',): {'yes': 1.0, 'no': 0.0}   # T5 available in future mode
+                ('today',): {'yes': 0.0, 'no': 1.0},
+                ('future',): {'yes': 1.0, 'no': 0.0}
             }
         )
         
@@ -116,7 +138,7 @@ class BayesianNetwork:
             'Network_Changes', ['Mode'],
             {
                 ('today',): {'major': 0.0, 'minor': 0.1, 'none': 0.9},
-                ('future',): {'major': 0.8, 'minor': 0.15, 'none': 0.05}  # TELe/CRL = major changes
+                ('future',): {'major': 0.8, 'minor': 0.15, 'none': 0.05}
             }
         )
         
@@ -134,7 +156,6 @@ class BayesianNetwork:
         )
         
         # CPT 7: Crowding_Risk depends on Time_Of_Day, Station_Type, and Passenger_Flow_Pattern
-        # This is a large CPT with 2 × 3 × 3 = 18 combinations
         crowding_probs = {}
         
         # Peak hours scenarios
@@ -168,178 +189,372 @@ class BayesianNetwork:
             crowding_probs
         )
     
-    def infer(self, evidence: Dict[str, str], query_var: str) -> Dict[str, float]:
+    def infer(self, evidence: Dict[str, str], query_var: str, show_steps: bool = False) -> Tuple[Dict[str, float], List[InferenceStep]]:
         """
         Perform probabilistic inference using enumeration
         
         Args:
             evidence: Dictionary of observed variables and their values
             query_var: Variable to query
+            show_steps: Whether to show detailed computation steps
         
         Returns:
-            Probability distribution over query variable
+            Tuple of (probability distribution, inference steps)
         """
-        # Get all variables except query and evidence
         hidden_vars = self.variables - {query_var} - set(evidence.keys())
+        steps = []
+        step_num = 0
         
         result = {}
         
+        if show_steps:
+            print(f"\n{'='*80}")
+            print(f"BAYESIAN INFERENCE: Computing P({query_var} | {evidence})")
+            print(f"{'='*80}\n")
+            print(f"Evidence variables: {list(evidence.keys())}")
+            print(f"Query variable: {query_var}")
+            print(f"Hidden variables: {list(hidden_vars)}")
+            print(f"\nNetwork structure:")
+            for var, cpt in self.cpts.items():
+                if cpt.parents:
+                    print(f"  {var} ← {', '.join(cpt.parents)}")
+                else:
+                    print(f"  {var} (root node)")
+        
         # For each possible value of the query variable
         for query_value in self.domains[query_var]:
-            # Create assignment with query value
+            step_num += 1
             assignment = evidence.copy()
             assignment[query_var] = query_value
             
+            if show_steps:
+                print(f"\n{'-'*80}")
+                print(f"Step {step_num}: Computing P({query_var}={query_value} | evidence)")
+                print(f"{'-'*80}")
+            
             # Sum over all possible assignments to hidden variables
-            prob = self._enumerate_all(list(hidden_vars), assignment)
+            prob = self._enumerate_all(list(hidden_vars), assignment, show_steps, step_num)
             result[query_value] = prob
+            
+            if show_steps:
+                print(f"\n  → P({query_var}={query_value} | evidence) = {prob:.6f}")
+            
+            steps.append(InferenceStep(step_num, 'enumerate', {
+                'query_value': query_value,
+                'unnormalized_prob': prob
+            }))
         
         # Normalize
         total = sum(result.values())
         if total > 0:
             result = {k: v/total for k, v in result.items()}
         
-        return result
+        if show_steps:
+            print(f"\n{'='*80}")
+            print("NORMALIZATION")
+            print(f"{'='*80}")
+            print(f"\nSum of unnormalized probabilities: {total:.6f}")
+            print(f"\nNormalized probabilities:")
+            for value, prob in result.items():
+                print(f"  P({query_var}={value} | evidence) = {prob:.4f} ({prob*100:.2f}%)")
+        
+        steps.append(InferenceStep(step_num + 1, 'normalize', {
+            'total': total,
+            'result': result.copy()
+        }))
+        
+        return result, steps
     
-    def _enumerate_all(self, hidden_vars: List[str], assignment: Dict[str, str]) -> float:
+    def _enumerate_all(self, hidden_vars: List[str], assignment: Dict[str, str], 
+                       show_steps: bool, base_step: int) -> float:
         """Recursive enumeration over all hidden variables"""
         if not hidden_vars:
             # Base case: compute probability of full assignment
-            return self._compute_probability(assignment)
+            prob = self._compute_probability(assignment, show_steps)
+            return prob
         
         # Recursive case: sum over values of first hidden variable
         var = hidden_vars[0]
         remaining = hidden_vars[1:]
         
+        if show_steps:
+            print(f"\n  Marginalizing over {var}:")
+        
         total = 0.0
         for value in self.domains[var]:
             new_assignment = assignment.copy()
             new_assignment[var] = value
-            total += self._enumerate_all(remaining, new_assignment)
+            
+            if show_steps:
+                print(f"    {var}={value}:")
+            
+            prob = self._enumerate_all(remaining, new_assignment, show_steps, base_step)
+            total += prob
+            
+            if show_steps:
+                print(f"      → contributes {prob:.6f}")
         
         return total
     
-    def _compute_probability(self, assignment: Dict[str, str]) -> float:
+    def _compute_probability(self, assignment: Dict[str, str], show_steps: bool = False) -> float:
         """Compute joint probability of a complete assignment"""
         prob = 1.0
+        
+        if show_steps:
+            print(f"      Computing joint probability for:")
+            for var in sorted(assignment.keys()):
+                print(f"        {var}={assignment[var]}")
         
         for var in self.variables:
             cpt = self.cpts[var]
             var_value = assignment[var]
-            
-            # Get parent values
             parent_values = {p: assignment[p] for p in cpt.parents}
             
-            # Multiply by P(var | parents)
-            prob *= cpt.get_probability(var_value, parent_values)
+            p = cpt.get_probability(var_value, parent_values)
+            prob *= p
+            
+            if show_steps:
+                if cpt.parents:
+                    parent_str = ', '.join([f"{p}={assignment[p]}" for p in cpt.parents])
+                    print(f"        P({var}={var_value} | {parent_str}) = {p:.3f}")
+                else:
+                    print(f"        P({var}={var_value}) = {p:.3f}")
+        
+        if show_steps:
+            print(f"      Joint probability = {prob:.6f}")
         
         return prob
+    
+    def print_network_structure(self):
+        """Print the network structure and CPTs"""
+        print(f"\n{'='*80}")
+        print("BAYESIAN NETWORK STRUCTURE")
+        print(f"{'='*80}\n")
+        
+        print(f"Variables: {len(self.variables)}")
+        for var in sorted(self.variables):
+            print(f"  • {var}: {self.domains[var]}")
+        
+        print(f"\n\nConditional Probability Tables:")
+        print("-" * 80)
+        
+        for var in sorted(self.variables):
+            self.cpts[var].print_table()
+    
+    def compare_scenarios(self, scenarios: List[Tuple[str, Dict[str, str]]], query_var: str):
+        """Compare multiple scenarios side-by-side"""
+        print(f"\n{'='*80}")
+        print(f"SCENARIO COMPARISON: P({query_var} | different evidence)")
+        print(f"{'='*80}\n")
+        
+        results = []
+        for name, evidence in scenarios:
+            result, _ = self.infer(evidence, query_var, show_steps=False)
+            results.append((name, evidence, result))
+        
+        # Print comparison table
+        print(f"{'Scenario':<30} {'Evidence':<35} ", end="")
+        for value in self.domains[query_var]:
+            print(f"{value:<12}", end="")
+        print()
+        print("-" * 100)
+        
+        for name, evidence, result in results:
+            evidence_str = ', '.join([f"{k}={v}" for k, v in evidence.items()])
+            print(f"{name:<30} {evidence_str:<35} ", end="")
+            for value in self.domains[query_var]:
+                print(f"{result[value]:.4f} ({result[value]*100:.1f}%)  ", end="")
+            print()
+        
+        # Print analysis
+        print(f"\n{'='*80}")
+        print("ANALYSIS")
+        print(f"{'='*80}\n")
+        
+        for i, (name1, _, result1) in enumerate(results):
+            for j, (name2, _, result2) in enumerate(results[i+1:], i+1):
+                print(f"\nComparing '{name1}' vs '{name2}':")
+                for value in self.domains[query_var]:
+                    diff = result2[value] - result1[value]
+                    print(f"  P({query_var}={value}): {result1[value]:.3f} → {result2[value]:.3f} (change: {diff:+.3f})")
 
 
-def run_crowding_risk_scenarios():
-    """Run crowding risk prediction scenarios"""
+class InteractiveBayesianNetwork:
+    """Interactive interface for Bayesian network"""
     
-    print("=== Bayesian Network: Crowding Risk Prediction ===\n")
+    def __init__(self):
+        self.bn = BayesianNetwork()
     
-    bn = BayesianNetwork()
+    def run(self):
+        """Run interactive mode"""
+        print("\n" + "╔" + "="*78 + "╗")
+        print("║" + " "*78 + "║")
+        print("║" + "INTERACTIVE BAYESIAN NETWORK".center(78) + "║")
+        print("║" + "Crowding Risk Prediction System".center(78) + "║")
+        print("║" + " "*78 + "║")
+        print("╚" + "="*78 + "╝")
+        
+        while True:
+            print("\n\nOptions:")
+            print("  1. Query crowding risk (custom evidence)")
+            print("  2. Run predefined scenarios")
+            print("  3. Compare multiple scenarios")
+            print("  4. View network structure")
+            print("  5. Show CPT for a variable")
+            print("  6. Exit")
+            
+            choice = input("\nSelect option (1-6): ").strip()
+            
+            if choice == '1':
+                self.custom_query()
+            elif choice == '2':
+                self.predefined_scenarios()
+            elif choice == '3':
+                self.compare_multiple_scenarios()
+            elif choice == '4':
+                self.bn.print_network_structure()
+            elif choice == '5':
+                self.show_cpt()
+            elif choice == '6':
+                print("\nThank you for using the Bayesian Network system!")
+                break
+            else:
+                print("\nInvalid option. Please try again.")
     
-    # Scenario 1: Today mode, peak hours, interchange station
-    print("Scenario 1: Today Mode - Peak hours at interchange station")
-    evidence1 = {
-        'Mode': 'today',
-        'Time_Of_Day': 'peak',
-        'Station_Type': 'interchange'
-    }
-    result1 = bn.infer(evidence1, 'Crowding_Risk')
-    print(f"Evidence: {evidence1}")
-    print(f"P(Crowding_Risk | evidence):")
-    for risk, prob in sorted(result1.items(), key=lambda x: -x[1]):
-        print(f"  {risk}: {prob:.3f}")
-    print()
-    
-    # Scenario 2: Future mode, peak hours, interchange station
-    print("Scenario 2: Future Mode - Peak hours at interchange station")
-    evidence2 = {
-        'Mode': 'future',
-        'Time_Of_Day': 'peak',
-        'Station_Type': 'interchange'
-    }
-    result2 = bn.infer(evidence2, 'Crowding_Risk')
-    print(f"Evidence: {evidence2}")
-    print(f"P(Crowding_Risk | evidence):")
-    for risk, prob in sorted(result2.items(), key=lambda x: -x[1]):
-        print(f"  {risk}: {prob:.3f}")
-    
-    # Compare
-    print(f"\nComparison (Today vs Future):")
-    print(f"  High risk: {result1['high']:.3f} → {result2['high']:.3f} (change: {result2['high']-result1['high']:+.3f})")
-    print(f"Explanation: Future mode has major network changes (TELe/CRL), causing more")
-    print(f"concentrated passenger flow patterns, which increases crowding risk at interchanges.\n")
-    
-    # Scenario 3: Today mode, off-peak, airport station
-    print("Scenario 3: Today Mode - Off-peak at airport station")
-    evidence3 = {
-        'Mode': 'today',
-        'Time_Of_Day': 'off_peak',
-        'Station_Type': 'airport'
-    }
-    result3 = bn.infer(evidence3, 'Crowding_Risk')
-    print(f"Evidence: {evidence3}")
-    print(f"P(Crowding_Risk | evidence):")
-    for risk, prob in sorted(result3.items(), key=lambda x: -x[1]):
-        print(f"  {risk}: {prob:.3f}")
-    print()
-    
-    # Scenario 4: Future mode, off-peak, airport station (with T5)
-    print("Scenario 4: Future Mode - Off-peak at airport station (T5 available)")
-    evidence4 = {
-        'Mode': 'future',
-        'Time_Of_Day': 'off_peak',
-        'Station_Type': 'airport'
-    }
-    result4 = bn.infer(evidence4, 'Crowding_Risk')
-    print(f"Evidence: {evidence4}")
-    print(f"P(Crowding_Risk | evidence):")
-    for risk, prob in sorted(result4.items(), key=lambda x: -x[1]):
-        print(f"  {risk}: {prob:.3f}")
-    
-    print(f"\nComparison (Today vs Future at airport during off-peak):")
-    print(f"  High risk: {result3['high']:.3f} → {result4['high']:.3f} (change: {result4['high']-result3['high']:+.3f})")
-    print(f"Explanation: T5 availability in future mode distributes passenger flow better,")
-    print(f"reducing concentrated crowding even with major network changes.\n")
-    
-    # Scenario 5: Today mode, peak, regular station
-    print("Scenario 5: Today Mode - Peak hours at regular station")
-    evidence5 = {
-        'Mode': 'today',
-        'Time_Of_Day': 'peak',
-        'Station_Type': 'regular'
-    }
-    result5 = bn.infer(evidence5, 'Crowding_Risk')
-    print(f"Evidence: {evidence5}")
-    print(f"P(Crowding_Risk | evidence):")
-    for risk, prob in sorted(result5.items(), key=lambda x: -x[1]):
-        print(f"  {risk}: {prob:.3f}")
-    print()
-    
-    # Additional analysis
-    print("=== Network Structure Analysis ===")
-    print(f"Total variables: {len(bn.variables)}")
-    print(f"Variables: {', '.join(sorted(bn.variables))}")
-    print(f"\nParent-child relationships:")
-    for var, cpt in bn.cpts.items():
-        if cpt.parents:
-            print(f"  {var} ← {', '.join(cpt.parents)}")
+    def custom_query(self):
+        """Allow user to specify custom evidence"""
+        print("\n" + "="*80)
+        print("CUSTOM QUERY")
+        print("="*80 + "\n")
+        
+        evidence = {}
+        
+        # Get Mode
+        mode = self._get_input("Mode", ['today', 'future'])
+        if mode:
+            evidence['Mode'] = mode
+        
+        # Get Time_Of_Day
+        time = self._get_input("Time_Of_Day", ['peak', 'off_peak'])
+        if time:
+            evidence['Time_Of_Day'] = time
+        
+        # Get Station_Type
+        station = self._get_input("Station_Type", ['interchange', 'regular', 'airport'])
+        if station:
+            evidence['Station_Type'] = station
+        
+        if not evidence:
+            print("\nNo evidence provided. Cannot perform inference.")
+            return
+        
+        # Query
+        result, steps = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
+        
+        # Show recommendation
+        print(f"\n{'='*80}")
+        print("RECOMMENDATION")
+        print(f"{'='*80}\n")
+        
+        max_risk = max(result.items(), key=lambda x: x[1])
+        if max_risk[0] == 'high' and max_risk[1] > 0.5:
+            print("⚠️  HIGH CROWDING RISK DETECTED")
+            print("   Recommendations:")
+            print("   • Consider alternative routes")
+            print("   • Allow extra travel time")
+            print("   • Avoid peak hours if possible")
+        elif max_risk[0] == 'low' and max_risk[1] > 0.5:
+            print("✓  LOW CROWDING RISK")
+            print("   Good time to travel!")
         else:
-            print(f"  {var} (root node)")
+            print("~  MODERATE CROWDING RISK")
+            print("   Normal travel conditions expected")
     
-    print("\n=== Limitations ===")
-    print("1. Data sparsity: CPT probabilities are estimates based on domain knowledge")
-    print("2. Discretization: Continuous variables (time, passenger count) are discretized")
-    print("3. Independence assumptions: Some correlated factors may not be captured")
-    print("4. Static model: Does not account for dynamic changes during the day")
-    print("5. Limited scope: Focuses on 30-station subgraph, not full network")
+    def predefined_scenarios(self):
+        """Run predefined test scenarios"""
+        print("\n" + "="*80)
+        print("PREDEFINED SCENARIOS")
+        print("="*80 + "\n")
+        
+        scenarios = [
+            ("Today Peak Interchange", {'Mode': 'today', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
+            ("Future Peak Interchange", {'Mode': 'future', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
+            ("Today Off-Peak Airport", {'Mode': 'today', 'Time_Of_Day': 'off_peak', 'Station_Type': 'airport'}),
+            ("Future Off-Peak Airport", {'Mode': 'future', 'Time_Of_Day': 'off_peak', 'Station_Type': 'airport'}),
+        ]
+        
+        print("Available scenarios:")
+        for i, (name, evidence) in enumerate(scenarios, 1):
+            evidence_str = ', '.join([f"{k}={v}" for k, v in evidence.items()])
+            print(f"  {i}. {name}: {evidence_str}")
+        
+        choice = input("\nSelect scenario (1-4) or 'a' for all: ").strip()
+        
+        if choice == 'a':
+            for name, evidence in scenarios:
+                print(f"\n{'='*80}")
+                print(f"Scenario: {name}")
+                print(f"{'='*80}")
+                result, _ = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
+                input("\nPress Enter to continue...")
+        elif choice in ['1', '2', '3', '4']:
+            name, evidence = scenarios[int(choice) - 1]
+            print(f"\n{'='*80}")
+            print(f"Scenario: {name}")
+            print(f"{'='*80}")
+            result, _ = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
+    
+    def compare_multiple_scenarios(self):
+        """Compare predefined scenarios"""
+        print("\n" + "="*80)
+        print("SCENARIO COMPARISON")
+        print("="*80 + "\n")
+        
+        scenarios = [
+            ("Today Peak Interchange", {'Mode': 'today', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
+            ("Future Peak Interchange", {'Mode': 'future', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
+            ("Today Off-Peak Regular", {'Mode': 'today', 'Time_Of_Day': 'off_peak', 'Station_Type': 'regular'}),
+            ("Future Off-Peak Regular", {'Mode': 'future', 'Time_Of_Day': 'off_peak', 'Station_Type': 'regular'}),
+        ]
+        
+        self.bn.compare_scenarios(scenarios, 'Crowding_Risk')
+    
+    def show_cpt(self):
+        """Show CPT for a specific variable"""
+        print("\n" + "="*80)
+        print("VIEW CONDITIONAL PROBABILITY TABLE")
+        print("="*80 + "\n")
+        
+        print("Available variables:")
+        for i, var in enumerate(sorted(self.bn.variables), 1):
+            print(f"  {i}. {var}")
+        
+        choice = input("\nSelect variable (1-7): ").strip()
+        if choice.isdigit() and 1 <= int(choice) <= 7:
+            var = sorted(self.bn.variables)[int(choice) - 1]
+            self.bn.cpts[var].print_table()
+    
+    def _get_input(self, variable: str, options: List[str]) -> Optional[str]:
+        """Get input for a variable"""
+        print(f"\n{variable} options: {', '.join(options)}")
+        value = input(f"Enter {variable} (or press Enter to skip): ").strip().lower()
+        
+        if not value:
+            return None
+        
+        if value in options:
+            return value
+        
+        # Try partial match
+        matches = [opt for opt in options if opt.startswith(value)]
+        if len(matches) == 1:
+            print(f"  Interpreting as: {matches[0]}")
+            return matches[0]
+        
+        print(f"  Invalid value. Skipping {variable}.")
+        return None
 
 
 if __name__ == "__main__":
-    run_crowding_risk_scenarios()
+    app = InteractiveBayesianNetwork()
+    app.run()
