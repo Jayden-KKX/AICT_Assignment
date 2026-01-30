@@ -1,5 +1,5 @@
-Dataset,Filename,Records,Description
-Nodes,nodes.csv,30,All 30 MRT stations with coordinates and attributes
+Dataset,Filename,Amount,Description
+Nodes,nodes.csv,30,30 MRT stations with coordinates and attributes
 Edges,edges.csv,33,35 rail connections with distances and travel times
 Heuristics,heuristics.csv,9,Pre-calculated heuristics for key origin-destination pairs
 Cost Parameters,cost_parameters.csv,4,Parameters used in cost function calculations
