@@ -73,15 +73,7 @@ class ConditionalProbabilityTable:
 
 class BayesianNetwork:
     """
-    Enhanced Bayesian Network for crowding risk prediction
-    
-    Network structure:
-    - Mode (Today/Future) → affects T5_Available and Network_Changes
-    - Time_Of_Day (Peak/Off-Peak) → affects Crowding_Risk
-    - Station_Type (Interchange/Regular/Airport) → affects Crowding_Risk
-    - T5_Available → affects Passenger_Flow_Pattern
-    - Network_Changes → affects Passenger_Flow_Pattern
-    - Passenger_Flow_Pattern → affects Crowding_Risk
+    Bayesian Network for crowding risk prediction
     """
     
     def __init__(self):
@@ -194,9 +186,9 @@ class BayesianNetwork:
         Perform probabilistic inference using enumeration
         
         Args:
-            evidence: Dictionary of observed variables and their values
-            query_var: Variable to query
-            show_steps: Whether to show detailed computation steps
+            evidence: observed variables and their values
+            query_var: variable to query
+            show_steps: to show detailed computation steps
         
         Returns:
             Tuple of (probability distribution, inference steps)
@@ -328,7 +320,7 @@ class BayesianNetwork:
     def print_network_structure(self):
         """Print the network structure and CPTs"""
         print(f"\n{'='*80}")
-        print("BAYESIAN NETWORK STRUCTURE")
+        print("Bayesian Network Structure")
         print(f"{'='*80}\n")
         
         print(f"Variables: {len(self.variables)}")
@@ -344,7 +336,7 @@ class BayesianNetwork:
     def compare_scenarios(self, scenarios: List[Tuple[str, Dict[str, str]]], query_var: str):
         """Compare multiple scenarios side-by-side"""
         print(f"\n{'='*80}")
-        print(f"SCENARIO COMPARISON: P({query_var} | different evidence)")
+        print(f"Scenario Comparison: P({query_var} | different evidence)")
         print(f"{'='*80}\n")
         
         results = []
@@ -368,7 +360,7 @@ class BayesianNetwork:
         
         # Print analysis
         print(f"\n{'='*80}")
-        print("ANALYSIS")
+        print("Amalysis of Differences")
         print(f"{'='*80}\n")
         
         for i, (name1, _, result1) in enumerate(results):
@@ -424,7 +416,7 @@ class InteractiveBayesianNetwork:
     def custom_query(self):
         """Allow user to specify custom evidence"""
         print("\n" + "="*80)
-        print("CUSTOM QUERY")
+        print("Custom Query")
         print("="*80 + "\n")
         
         evidence = {}
@@ -453,27 +445,27 @@ class InteractiveBayesianNetwork:
         
         # Show recommendation
         print(f"\n{'='*80}")
-        print("RECOMMENDATION")
+        print("Reccommendations")
         print(f"{'='*80}\n")
         
         max_risk = max(result.items(), key=lambda x: x[1])
         if max_risk[0] == 'high' and max_risk[1] > 0.5:
-            print("⚠️  HIGH CROWDING RISK DETECTED")
+            print("High Crowding Risk")
             print("   Recommendations:")
             print("   • Consider alternative routes")
             print("   • Allow extra travel time")
             print("   • Avoid peak hours if possible")
         elif max_risk[0] == 'low' and max_risk[1] > 0.5:
-            print("✓  LOW CROWDING RISK")
+            print("Low Crowding Risk")
             print("   Good time to travel!")
         else:
-            print("~  MODERATE CROWDING RISK")
+            print("Moderate Crowding Risk")
             print("   Normal travel conditions expected")
     
     def predefined_scenarios(self):
         """Run predefined test scenarios"""
         print("\n" + "="*80)
-        print("PREDEFINED SCENARIOS")
+        print("Predefined Scenarios")
         print("="*80 + "\n")
         
         scenarios = [
@@ -507,7 +499,7 @@ class InteractiveBayesianNetwork:
     def compare_multiple_scenarios(self):
         """Compare predefined scenarios"""
         print("\n" + "="*80)
-        print("SCENARIO COMPARISON")
+        print("Scenario Comparison")
         print("="*80 + "\n")
         
         scenarios = [
@@ -522,7 +514,7 @@ class InteractiveBayesianNetwork:
     def show_cpt(self):
         """Show CPT for a specific variable"""
         print("\n" + "="*80)
-        print("VIEW CONDITIONAL PROBABILITY TABLE")
+        print("Conditional Probability Tables")
         print("="*80 + "\n")
         
         print("Available variables:")
