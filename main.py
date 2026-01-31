@@ -1,12 +1,7 @@
-"""
-ChangiLink AI - System Demo
-"""
-
 import sys
 
 from mrt_network import MRTNetwork
 from search_algorithms import MRTRouteSearch, format_comparison_table
-from bayesian_network import InteractiveBayesianNetwork
 from logical_inference import InteractiveLogicalInference
 from optimization import InteractiveOptimization
 
@@ -84,7 +79,7 @@ def requirement_1_search_algorithms():
         
         print(format_comparison_table(results))
         
-        print("\n\Paths:")
+        print("\n\nPaths:")
         for algo_name, result in results.items():
             if result.path:
                 path_names = [network.get_station(s).name for s in result.path]
@@ -133,36 +128,68 @@ def requirement_3_bayesian_network():
     print_header("Q3: BAYESIAN NETWORK")
     
     print("\n\nMenu:")
-    print("  1. Quick example")
-    print("  2. Interactive Bayesian network")
+    print("  1. Run all required scenarios")
+    print("  2. Quick single example")
     print("  3. Back to main menu")
     
     choice = input("\nSelect option (1-3): ").strip()
     
     if choice == '1':
-        # Quick example
-        print_section("Example: Crowding Risk Prediction")
+        print("\nRunning all required scenarios...\n")
         
-        from bayesian_network import BayesianNetwork
-        
-        bn = BayesianNetwork()
-        
-        print("Params: Future mode, peak hours, interchange station")
-        
-        evidence = {
-            'Mode': 'future',
-            'Time_Of_Day': 'peak',
-            'Station_Type': 'interchange'
-        }
-        
-        result, steps = bn.infer(evidence, 'Crowding_Risk', show_steps=True)
+        try:
+            from bayesian_network import run_required_scenarios
+            run_required_scenarios()
+        except ImportError:
+            from bayesian_network import run_crowding_risk_scenarios
+            run_crowding_risk_scenarios()
         
         input("\nPress Enter to continue...")
         
     elif choice == '2':
-        # Interactive
-        app = InteractiveBayesianNetwork()
-        app.run()
+        # Quick example
+        print_section("Quick Example: Single Scenario")
+        
+        try:
+            # Try improved version
+            from bayesian_network import BayesianNetwork
+            
+            bn = BayesianNetwork()
+            
+            # Run a single scenario with the improved format
+            bn.run_scenario(
+                "Clear Evening Weekday + Normal Service (FUTURE)",
+                {
+                    'Weather': 'clear',
+                    'Time_Of_Day': 'evening',
+                    'Day_Type': 'weekday',
+                    'Network_Mode': 'future',
+                    'Service_Status': 'normal'
+                }
+            )
+        except ImportError:
+            
+            from bayesian_network import BayesianNetwork
+            
+            bn = BayesianNetwork()
+            
+            evidence = {
+                'Mode': 'future',
+                'Time_Of_Day': 'peak',
+                'Station_Type': 'interchange'
+            }
+            
+            result = bn.infer(evidence, 'Crowding_Risk')
+            
+            print(f"Evidence: {evidence}")
+            print(f"\nP(Crowding_Risk | evidence):")
+            for risk in ['high', 'medium', 'low']:
+                prob = result[risk]
+                bar_length = int(prob * 50)
+                bar = '█' * bar_length
+                print(f"  {risk:8s} | {bar:50s} {prob:.2%}")
+        
+        input("\nPress Enter to continue...")
 
 
 def requirement_4_optimization():
@@ -226,16 +253,17 @@ def requirement_4_optimization():
 def main():
     """Main application"""
     print_header("ChangiLink AI")
+
     
     while True:
         print("\n\n" + "="*80)
         print("MAIN MENU")
         print("="*80)
         
-        print("  1. Search Algorithms")
-        print("  2. Logical Inference")
-        print("  3. Bayesian Network")
-        print("  4. Optimization")
+        print("\n  1. Search Algorithms (BFS, DFS, GBFS, A*)")
+        print("  2. Logical Inference (Resolution)")
+        print("  3. Bayesian Network (Crowding Risk)")
+        print("  4. Optimization (Simulated Annealing)")
         print("  5. Exit")
         
         choice = input("\nSelect option (1-5): ").strip()
@@ -249,16 +277,19 @@ def main():
         elif choice == '4':
             requirement_4_optimization()
         elif choice == '5':
-            print("\nGoodbye! \n")
+            print("\n" + "="*80)
+            print("Thank you for using ChangiLink AI!")
+            print("="*80 + "\n")
             break
         else:
             print("\nInvalid option. Please try again.")
+
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\nInterrupted. Exiting...")
+        print("\n\nInterrupted.")
     except Exception as e:
         print(f"\n\nError: {e}")
         import traceback
