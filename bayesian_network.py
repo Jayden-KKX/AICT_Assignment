@@ -1,36 +1,17 @@
 """
-Enhanced Bayesian Network for MRT Crowding Risk Prediction
-Implements Variable Elimination with step-by-step workings
-Interactive scenario testing and probability visualization
+Improved Bayesian Network for MRT Crowding Risk Prediction
+Focused on Changi Airport-T5 corridor with required variables
+Cleaner, more concise output
 """
 
 from typing import Dict, List, Set, Tuple, Optional
 import itertools
 
 
-class InferenceStep:
-    """Records a step in the inference process"""
-    def __init__(self, step_num: int, action: str, details: Dict):
-        self.step_num = step_num
-        self.action = action  # 'enumerate', 'compute_joint', 'marginalize', 'normalize'
-        self.details = details
-    
-    def __repr__(self):
-        return f"Step {self.step_num}: {self.action} - {self.details}"
-
-
 class ConditionalProbabilityTable:
     """Conditional Probability Table (CPT) for a variable"""
     
     def __init__(self, variable: str, parents: List[str], probabilities: Dict):
-        """
-        Initialize CPT
-        
-        Args:
-            variable: The variable name
-            parents: List of parent variable names
-            probabilities: Dict mapping parent values to probability distributions
-        """
         self.variable = variable
         self.parents = parents
         self.probabilities = probabilities
@@ -46,34 +27,20 @@ class ConditionalProbabilityTable:
             return self.probabilities[parent_tuple].get(var_value, 0.0)
         
         return 0.0
-    
-    def get_all_values(self, parent_values: Dict[str, str]) -> Dict[str, float]:
-        """Get all probability values for this variable given parent values"""
-        if not self.parents:
-            return self.probabilities
-        
-        parent_tuple = tuple(parent_values.get(p, None) for p in self.parents)
-        return self.probabilities.get(parent_tuple, {})
-    
-    def print_table(self):
-        """Print the CPT in a readable format"""
-        print(f"\n  CPT for {self.variable}:")
-        if not self.parents:
-            print(f"    (No parents - prior probability)")
-            for value, prob in self.probabilities.items():
-                print(f"      P({self.variable}={value}) = {prob:.3f}")
-        else:
-            print(f"    Parents: {', '.join(self.parents)}")
-            for parent_config, probs in self.probabilities.items():
-                parent_str = ', '.join([f"{p}={v}" for p, v in zip(self.parents, parent_config)])
-                print(f"    Given {parent_str}:")
-                for value, prob in probs.items():
-                    print(f"      P({self.variable}={value}) = {prob:.3f}")
 
 
 class BayesianNetwork:
     """
-    Bayesian Network for crowding risk prediction
+    Bayesian Network for Crowding Risk Prediction - Changi Airport-T5 Corridor
+    
+    Network Structure (7 variables):
+    - Weather (W): Clear / Rainy / Thunderstorms
+    - Time_Of_Day (T): Morning / Afternoon / Evening  
+    - Day_Type (D): Weekday / Weekend
+    - Network_Mode (M): Today / Future
+    - Service_Status (S): Normal / Reduced / Disrupted → depends on Mode
+    - Demand_Proxy (P): Low / Medium / High → depends on Time, Day, Weather
+    - Crowding_Risk (C): Low / Medium / High → depends on Demand, Service, Mode
     """
     
     def __init__(self):
@@ -87,466 +54,403 @@ class BayesianNetwork:
         
         # Define domains
         self.domains = {
-            'Mode': ['today', 'future'],
-            'Time_Of_Day': ['peak', 'off_peak'],
-            'Station_Type': ['interchange', 'regular', 'airport'],
-            'T5_Available': ['yes', 'no'],
-            'Network_Changes': ['major', 'minor', 'none'],
-            'Passenger_Flow_Pattern': ['concentrated', 'distributed', 'normal'],
-            'Crowding_Risk': ['high', 'medium', 'low']
+            'Weather': ['clear', 'rainy', 'thunderstorms'],
+            'Time_Of_Day': ['morning', 'afternoon', 'evening'],
+            'Day_Type': ['weekday', 'weekend'],
+            'Network_Mode': ['today', 'future'],
+            'Service_Status': ['normal', 'reduced', 'disrupted'],
+            'Demand_Proxy': ['low', 'medium', 'high'],
+            'Crowding_Risk': ['low', 'medium', 'high']
         }
         
         self.variables = set(self.domains.keys())
         
-        # CPT 1: Mode (root node)
-        self.cpts['Mode'] = ConditionalProbabilityTable(
-            'Mode', [],
+        # CPT 1: Weather (root) - Singapore climate data
+        # Source: NEA historical data - ~60% clear, 30% rainy, 10% thunderstorms
+        self.cpts['Weather'] = ConditionalProbabilityTable(
+            'Weather', [],
+            {'clear': 0.60, 'rainy': 0.30, 'thunderstorms': 0.10}
+        )
+        
+        # CPT 2: Time_Of_Day (root) - Uniform assumption for corridor
+        self.cpts['Time_Of_Day'] = ConditionalProbabilityTable(
+            'Time_Of_Day', [],
+            {'morning': 0.33, 'afternoon': 0.34, 'evening': 0.33}
+        )
+        
+        # CPT 3: Day_Type (root) - 5 weekdays, 2 weekend days
+        self.cpts['Day_Type'] = ConditionalProbabilityTable(
+            'Day_Type', [],
+            {'weekday': 0.71, 'weekend': 0.29}
+        )
+        
+        # CPT 4: Network_Mode (root) - Equal prior for scenario testing
+        self.cpts['Network_Mode'] = ConditionalProbabilityTable(
+            'Network_Mode', [],
             {'today': 0.5, 'future': 0.5}
         )
         
-        # CPT 2: Time_Of_Day (root node)
-        self.cpts['Time_Of_Day'] = ConditionalProbabilityTable(
-            'Time_Of_Day', [],
-            {'peak': 0.22, 'off_peak': 0.78}
-        )
-        
-        # CPT 3: Station_Type (root node)
-        self.cpts['Station_Type'] = ConditionalProbabilityTable(
-            'Station_Type', [],
-            {'interchange': 0.20, 'airport': 0.10, 'regular': 0.70}
-        )
-        
-        # CPT 4: T5_Available depends on Mode
-        self.cpts['T5_Available'] = ConditionalProbabilityTable(
-            'T5_Available', ['Mode'],
+        # CPT 5: Service_Status depends on Network_Mode
+        # Justification: Future mode has higher disruption risk during systems integration (TELe/CRL works)
+        # Source: LTA announcements on planned works, historical MRT disruption frequency
+        self.cpts['Service_Status'] = ConditionalProbabilityTable(
+            'Service_Status', ['Network_Mode'],
             {
-                ('today',): {'yes': 0.0, 'no': 1.0},
-                ('future',): {'yes': 1.0, 'no': 0.0}
+                ('today',): {'normal': 0.85, 'reduced': 0.10, 'disrupted': 0.05},
+                ('future',): {'normal': 0.70, 'reduced': 0.20, 'disrupted': 0.10}  # Higher disruption during integration
             }
         )
         
-        # CPT 5: Network_Changes depends on Mode
-        self.cpts['Network_Changes'] = ConditionalProbabilityTable(
-            'Network_Changes', ['Mode'],
-            {
-                ('today',): {'major': 0.0, 'minor': 0.1, 'none': 0.9},
-                ('future',): {'major': 0.8, 'minor': 0.15, 'none': 0.05}
-            }
+        # CPT 6: Demand_Proxy depends on Time_Of_Day, Day_Type, Weather
+        # Justification: Changi Airport corridor demand patterns
+        # - Morning/Evening weekdays: High (commuter + airport traffic)
+        # - Weekends: Lower but more tourist traffic
+        # - Bad weather: Higher demand for covered transport
+        demand_probs = {}
+        
+        # Weekday patterns
+        demand_probs[('morning', 'weekday', 'clear')] = {'low': 0.10, 'medium': 0.30, 'high': 0.60}
+        demand_probs[('morning', 'weekday', 'rainy')] = {'low': 0.05, 'medium': 0.25, 'high': 0.70}
+        demand_probs[('morning', 'weekday', 'thunderstorms')] = {'low': 0.05, 'medium': 0.20, 'high': 0.75}
+        
+        demand_probs[('afternoon', 'weekday', 'clear')] = {'low': 0.20, 'medium': 0.50, 'high': 0.30}
+        demand_probs[('afternoon', 'weekday', 'rainy')] = {'low': 0.15, 'medium': 0.45, 'high': 0.40}
+        demand_probs[('afternoon', 'weekday', 'thunderstorms')] = {'low': 0.10, 'medium': 0.40, 'high': 0.50}
+        
+        demand_probs[('evening', 'weekday', 'clear')] = {'low': 0.10, 'medium': 0.25, 'high': 0.65}
+        demand_probs[('evening', 'weekday', 'rainy')] = {'low': 0.05, 'medium': 0.20, 'high': 0.75}
+        demand_probs[('evening', 'weekday', 'thunderstorms')] = {'low': 0.05, 'medium': 0.15, 'high': 0.80}
+        
+        # Weekend patterns (lower commuter demand, more leisure)
+        demand_probs[('morning', 'weekend', 'clear')] = {'low': 0.30, 'medium': 0.45, 'high': 0.25}
+        demand_probs[('morning', 'weekend', 'rainy')] = {'low': 0.25, 'medium': 0.40, 'high': 0.35}
+        demand_probs[('morning', 'weekend', 'thunderstorms')] = {'low': 0.20, 'medium': 0.35, 'high': 0.45}
+        
+        demand_probs[('afternoon', 'weekend', 'clear')] = {'low': 0.25, 'medium': 0.45, 'high': 0.30}
+        demand_probs[('afternoon', 'weekend', 'rainy')] = {'low': 0.20, 'medium': 0.40, 'high': 0.40}
+        demand_probs[('afternoon', 'weekend', 'thunderstorms')] = {'low': 0.15, 'medium': 0.35, 'high': 0.50}
+        
+        demand_probs[('evening', 'weekend', 'clear')] = {'low': 0.20, 'medium': 0.50, 'high': 0.30}
+        demand_probs[('evening', 'weekend', 'rainy')] = {'low': 0.15, 'medium': 0.45, 'high': 0.40}
+        demand_probs[('evening', 'weekend', 'thunderstorms')] = {'low': 0.10, 'medium': 0.40, 'high': 0.50}
+        
+        self.cpts['Demand_Proxy'] = ConditionalProbabilityTable(
+            'Demand_Proxy', ['Time_Of_Day', 'Day_Type', 'Weather'],
+            demand_probs
         )
         
-        # CPT 6: Passenger_Flow_Pattern depends on T5_Available and Network_Changes
-        self.cpts['Passenger_Flow_Pattern'] = ConditionalProbabilityTable(
-            'Passenger_Flow_Pattern', ['T5_Available', 'Network_Changes'],
-            {
-                ('yes', 'major'): {'concentrated': 0.5, 'distributed': 0.3, 'normal': 0.2},
-                ('yes', 'minor'): {'concentrated': 0.3, 'distributed': 0.4, 'normal': 0.3},
-                ('yes', 'none'): {'concentrated': 0.2, 'distributed': 0.3, 'normal': 0.5},
-                ('no', 'major'): {'concentrated': 0.6, 'distributed': 0.2, 'normal': 0.2},
-                ('no', 'minor'): {'concentrated': 0.3, 'distributed': 0.3, 'normal': 0.4},
-                ('no', 'none'): {'concentrated': 0.1, 'distributed': 0.2, 'normal': 0.7},
-            }
-        )
-        
-        # CPT 7: Crowding_Risk depends on Time_Of_Day, Station_Type, and Passenger_Flow_Pattern
+        # CPT 7: Crowding_Risk depends on Demand_Proxy, Service_Status, Network_Mode
+        # Justification: 
+        # - High demand + reduced/disrupted service = high crowding
+        # - Future mode with T5 provides additional capacity, reducing crowding
+        # - Systems integration works increase crowding risk temporarily
         crowding_probs = {}
         
-        # Peak hours scenarios
-        crowding_probs[('peak', 'interchange', 'concentrated')] = {'high': 0.8, 'medium': 0.15, 'low': 0.05}
-        crowding_probs[('peak', 'interchange', 'distributed')] = {'high': 0.5, 'medium': 0.35, 'low': 0.15}
-        crowding_probs[('peak', 'interchange', 'normal')] = {'high': 0.6, 'medium': 0.3, 'low': 0.1}
+        # Today Mode - Normal Service
+        crowding_probs[('low', 'normal', 'today')] = {'low': 0.80, 'medium': 0.15, 'high': 0.05}
+        crowding_probs[('medium', 'normal', 'today')] = {'low': 0.40, 'medium': 0.45, 'high': 0.15}
+        crowding_probs[('high', 'normal', 'today')] = {'low': 0.15, 'medium': 0.40, 'high': 0.45}
         
-        crowding_probs[('peak', 'airport', 'concentrated')] = {'high': 0.7, 'medium': 0.2, 'low': 0.1}
-        crowding_probs[('peak', 'airport', 'distributed')] = {'high': 0.4, 'medium': 0.4, 'low': 0.2}
-        crowding_probs[('peak', 'airport', 'normal')] = {'high': 0.5, 'medium': 0.35, 'low': 0.15}
+        # Today Mode - Reduced Service
+        crowding_probs[('low', 'reduced', 'today')] = {'low': 0.50, 'medium': 0.35, 'high': 0.15}
+        crowding_probs[('medium', 'reduced', 'today')] = {'low': 0.20, 'medium': 0.40, 'high': 0.40}
+        crowding_probs[('high', 'reduced', 'today')] = {'low': 0.10, 'medium': 0.30, 'high': 0.60}
         
-        crowding_probs[('peak', 'regular', 'concentrated')] = {'high': 0.5, 'medium': 0.3, 'low': 0.2}
-        crowding_probs[('peak', 'regular', 'distributed')] = {'high': 0.3, 'medium': 0.4, 'low': 0.3}
-        crowding_probs[('peak', 'regular', 'normal')] = {'high': 0.4, 'medium': 0.4, 'low': 0.2}
+        # Today Mode - Disrupted Service
+        crowding_probs[('low', 'disrupted', 'today')] = {'low': 0.30, 'medium': 0.40, 'high': 0.30}
+        crowding_probs[('medium', 'disrupted', 'today')] = {'low': 0.15, 'medium': 0.35, 'high': 0.50}
+        crowding_probs[('high', 'disrupted', 'today')] = {'low': 0.05, 'medium': 0.25, 'high': 0.70}
         
-        # Off-peak scenarios
-        crowding_probs[('off_peak', 'interchange', 'concentrated')] = {'high': 0.4, 'medium': 0.4, 'low': 0.2}
-        crowding_probs[('off_peak', 'interchange', 'distributed')] = {'high': 0.2, 'medium': 0.4, 'low': 0.4}
-        crowding_probs[('off_peak', 'interchange', 'normal')] = {'high': 0.3, 'medium': 0.4, 'low': 0.3}
+        # Future Mode - Normal Service (T5 provides relief)
+        crowding_probs[('low', 'normal', 'future')] = {'low': 0.85, 'medium': 0.12, 'high': 0.03}
+        crowding_probs[('medium', 'normal', 'future')] = {'low': 0.50, 'medium': 0.40, 'high': 0.10}
+        crowding_probs[('high', 'normal', 'future')] = {'low': 0.25, 'medium': 0.45, 'high': 0.30}
         
-        crowding_probs[('off_peak', 'airport', 'concentrated')] = {'high': 0.3, 'medium': 0.4, 'low': 0.3}
-        crowding_probs[('off_peak', 'airport', 'distributed')] = {'high': 0.2, 'medium': 0.3, 'low': 0.5}
-        crowding_probs[('off_peak', 'airport', 'normal')] = {'high': 0.25, 'medium': 0.35, 'low': 0.4}
+        # Future Mode - Reduced Service (integration works impact)
+        crowding_probs[('low', 'reduced', 'future')] = {'low': 0.45, 'medium': 0.40, 'high': 0.15}
+        crowding_probs[('medium', 'reduced', 'future')] = {'low': 0.20, 'medium': 0.45, 'high': 0.35}
+        crowding_probs[('high', 'reduced', 'future')] = {'low': 0.10, 'medium': 0.35, 'high': 0.55}
         
-        crowding_probs[('off_peak', 'regular', 'concentrated')] = {'high': 0.2, 'medium': 0.3, 'low': 0.5}
-        crowding_probs[('off_peak', 'regular', 'distributed')] = {'high': 0.1, 'medium': 0.3, 'low': 0.6}
-        crowding_probs[('off_peak', 'regular', 'normal')] = {'high': 0.15, 'medium': 0.35, 'low': 0.5}
+        # Future Mode - Disrupted Service (worse due to integration complexity)
+        crowding_probs[('low', 'disrupted', 'future')] = {'low': 0.25, 'medium': 0.40, 'high': 0.35}
+        crowding_probs[('medium', 'disrupted', 'future')] = {'low': 0.10, 'medium': 0.30, 'high': 0.60}
+        crowding_probs[('high', 'disrupted', 'future')] = {'low': 0.05, 'medium': 0.20, 'high': 0.75}
         
         self.cpts['Crowding_Risk'] = ConditionalProbabilityTable(
-            'Crowding_Risk', ['Time_Of_Day', 'Station_Type', 'Passenger_Flow_Pattern'],
+            'Crowding_Risk', ['Demand_Proxy', 'Service_Status', 'Network_Mode'],
             crowding_probs
         )
     
-    def infer(self, evidence: Dict[str, str], query_var: str, show_steps: bool = False) -> Tuple[Dict[str, float], List[InferenceStep]]:
+    def infer(self, evidence: Dict[str, str], query_var: str, verbose: bool = False) -> Dict[str, float]:
         """
         Perform probabilistic inference using enumeration
         
         Args:
-            evidence: observed variables and their values
-            query_var: variable to query
-            show_steps: to show detailed computation steps
+            evidence: Dictionary of observed variables
+            query_var: Variable to query
+            verbose: Show calculation details
         
         Returns:
-            Tuple of (probability distribution, inference steps)
+            Probability distribution over query variable
         """
         hidden_vars = self.variables - {query_var} - set(evidence.keys())
-        steps = []
-        step_num = 0
-        
         result = {}
         
-        if show_steps:
-            print(f"\n{'='*80}")
-            print(f"BAYESIAN INFERENCE: Computing P({query_var} | {evidence})")
-            print(f"{'='*80}\n")
-            print(f"Evidence variables: {list(evidence.keys())}")
-            print(f"Query variable: {query_var}")
-            print(f"Hidden variables: {list(hidden_vars)}")
-            print(f"\nNetwork structure:")
-            for var, cpt in self.cpts.items():
-                if cpt.parents:
-                    print(f"  {var} ← {', '.join(cpt.parents)}")
-                else:
-                    print(f"  {var} (root node)")
+        if verbose:
+            print(f"\nComputing P({query_var} | {list(evidence.keys())})")
+            print(f"Hidden variables to marginalize: {list(hidden_vars)}\n")
         
         # For each possible value of the query variable
         for query_value in self.domains[query_var]:
-            step_num += 1
             assignment = evidence.copy()
             assignment[query_var] = query_value
             
-            if show_steps:
-                print(f"\n{'-'*80}")
-                print(f"Step {step_num}: Computing P({query_var}={query_value} | evidence)")
-                print(f"{'-'*80}")
-            
-            # Sum over all possible assignments to hidden variables
-            prob = self._enumerate_all(list(hidden_vars), assignment, show_steps, step_num)
+            # Sum over all hidden variables
+            prob = self._enumerate_all(list(hidden_vars), assignment, verbose, query_value)
             result[query_value] = prob
             
-            if show_steps:
-                print(f"\n  → P({query_var}={query_value} | evidence) = {prob:.6f}")
-            
-            steps.append(InferenceStep(step_num, 'enumerate', {
-                'query_value': query_value,
-                'unnormalized_prob': prob
-            }))
+            if verbose:
+                print(f"P({query_var}={query_value} | evidence) = {prob:.6f}")
         
         # Normalize
         total = sum(result.values())
         if total > 0:
             result = {k: v/total for k, v in result.items()}
         
-        if show_steps:
-            print(f"\n{'='*80}")
-            print("NORMALIZATION")
-            print(f"{'='*80}")
-            print(f"\nSum of unnormalized probabilities: {total:.6f}")
-            print(f"\nNormalized probabilities:")
+        if verbose:
+            print(f"\nNormalization constant: {total:.6f}")
+            print("\nFinal probabilities:")
             for value, prob in result.items():
-                print(f"  P({query_var}={value} | evidence) = {prob:.4f} ({prob*100:.2f}%)")
+                print(f"  P({query_var}={value}) = {prob:.4f} ({prob*100:.2f}%)")
         
-        steps.append(InferenceStep(step_num + 1, 'normalize', {
-            'total': total,
-            'result': result.copy()
-        }))
-        
-        return result, steps
+        return result
     
     def _enumerate_all(self, hidden_vars: List[str], assignment: Dict[str, str], 
-                       show_steps: bool, base_step: int) -> float:
-        """Recursive enumeration over all hidden variables"""
+                       verbose: bool, query_value: str) -> float:
+        """Recursive enumeration over hidden variables"""
         if not hidden_vars:
-            # Base case: compute probability of full assignment
-            prob = self._compute_probability(assignment, show_steps)
-            return prob
+            return self._compute_probability(assignment)
         
-        # Recursive case: sum over values of first hidden variable
         var = hidden_vars[0]
         remaining = hidden_vars[1:]
-        
-        if show_steps:
-            print(f"\n  Marginalizing over {var}:")
         
         total = 0.0
         for value in self.domains[var]:
             new_assignment = assignment.copy()
             new_assignment[var] = value
-            
-            if show_steps:
-                print(f"    {var}={value}:")
-            
-            prob = self._enumerate_all(remaining, new_assignment, show_steps, base_step)
-            total += prob
-            
-            if show_steps:
-                print(f"      → contributes {prob:.6f}")
+            total += self._enumerate_all(remaining, new_assignment, verbose, query_value)
         
         return total
     
-    def _compute_probability(self, assignment: Dict[str, str], show_steps: bool = False) -> float:
+    def _compute_probability(self, assignment: Dict[str, str]) -> float:
         """Compute joint probability of a complete assignment"""
         prob = 1.0
-        
-        if show_steps:
-            print(f"      Computing joint probability for:")
-            for var in sorted(assignment.keys()):
-                print(f"        {var}={assignment[var]}")
         
         for var in self.variables:
             cpt = self.cpts[var]
             var_value = assignment[var]
             parent_values = {p: assignment[p] for p in cpt.parents}
-            
-            p = cpt.get_probability(var_value, parent_values)
-            prob *= p
-            
-            if show_steps:
-                if cpt.parents:
-                    parent_str = ', '.join([f"{p}={assignment[p]}" for p in cpt.parents])
-                    print(f"        P({var}={var_value} | {parent_str}) = {p:.3f}")
-                else:
-                    print(f"        P({var}={var_value}) = {p:.3f}")
-        
-        if show_steps:
-            print(f"      Joint probability = {prob:.6f}")
+            prob *= cpt.get_probability(var_value, parent_values)
         
         return prob
     
-    def print_network_structure(self):
-        """Print the network structure and CPTs"""
+    def run_scenario(self, scenario_name: str, evidence: Dict[str, str], show_details: bool = False):
+        """Run a single scenario and print results"""
         print(f"\n{'='*80}")
-        print("Bayesian Network Structure")
-        print(f"{'='*80}\n")
+        print(f"SCENARIO: {scenario_name}")
+        print(f"{'='*80}")
         
-        print(f"Variables: {len(self.variables)}")
-        for var in sorted(self.variables):
-            print(f"  • {var}: {self.domains[var]}")
+        # Print evidence
+        print("\nEvidence:")
+        for var, value in sorted(evidence.items()):
+            print(f"  {var:20s} = {value}")
         
-        print(f"\n\nConditional Probability Tables:")
-        print("-" * 80)
+        # Perform inference
+        result = self.infer(evidence, 'Crowding_Risk', verbose=show_details)
         
-        for var in sorted(self.variables):
-            self.cpts[var].print_table()
-    
-    def compare_scenarios(self, scenarios: List[Tuple[str, Dict[str, str]]], query_var: str):
-        """Compare multiple scenarios side-by-side"""
-        print(f"\n{'='*80}")
-        print(f"Scenario Comparison: P({query_var} | different evidence)")
-        print(f"{'='*80}\n")
+        # Print results
+        print("\nCrowding Risk Prediction:")
+        print("-" * 40)
+        for risk in ['low', 'medium', 'high']:
+            bar_length = int(result[risk] * 50)
+            bar = '█' * bar_length
+            print(f"  {risk:8s} | {bar:50s} {result[risk]:.2%}")
         
-        results = []
-        for name, evidence in scenarios:
-            result, _ = self.infer(evidence, query_var, show_steps=False)
-            results.append((name, evidence, result))
-        
-        # Print comparison table
-        print(f"{'Scenario':<30} {'Evidence':<35} ", end="")
-        for value in self.domains[query_var]:
-            print(f"{value:<12}", end="")
-        print()
-        print("-" * 100)
-        
-        for name, evidence, result in results:
-            evidence_str = ', '.join([f"{k}={v}" for k, v in evidence.items()])
-            print(f"{name:<30} {evidence_str:<35} ", end="")
-            for value in self.domains[query_var]:
-                print(f"{result[value]:.4f} ({result[value]*100:.1f}%)  ", end="")
-            print()
-        
-        # Print analysis
-        print(f"\n{'='*80}")
-        print("Amalysis of Differences")
-        print(f"{'='*80}\n")
-        
-        for i, (name1, _, result1) in enumerate(results):
-            for j, (name2, _, result2) in enumerate(results[i+1:], i+1):
-                print(f"\nComparing '{name1}' vs '{name2}':")
-                for value in self.domains[query_var]:
-                    diff = result2[value] - result1[value]
-                    print(f"  P({query_var}={value}): {result1[value]:.3f} → {result2[value]:.3f} (change: {diff:+.3f})")
-
-
-class InteractiveBayesianNetwork:
-    """Interactive interface for Bayesian network"""
-    
-    def __init__(self):
-        self.bn = BayesianNetwork()
-    
-    def run(self):
-        """Run interactive mode"""
-        print("\n" + "╔" + "="*78 + "╗")
-        print("║" + " "*78 + "║")
-        print("║" + "INTERACTIVE BAYESIAN NETWORK".center(78) + "║")
-        print("║" + "Crowding Risk Prediction System".center(78) + "║")
-        print("║" + " "*78 + "║")
-        print("╚" + "="*78 + "╝")
-        
-        while True:
-            print("\n\nOptions:")
-            print("  1. Query crowding risk (custom evidence)")
-            print("  2. Run predefined scenarios")
-            print("  3. Compare multiple scenarios")
-            print("  4. View network structure")
-            print("  5. Show CPT for a variable")
-            print("  6. Exit")
-            
-            choice = input("\nSelect option (1-6): ").strip()
-            
-            if choice == '1':
-                self.custom_query()
-            elif choice == '2':
-                self.predefined_scenarios()
-            elif choice == '3':
-                self.compare_multiple_scenarios()
-            elif choice == '4':
-                self.bn.print_network_structure()
-            elif choice == '5':
-                self.show_cpt()
-            elif choice == '6':
-                print("\nThank you for using the Bayesian Network system!")
-                break
-            else:
-                print("\nInvalid option. Please try again.")
-    
-    def custom_query(self):
-        """Allow user to specify custom evidence"""
-        print("\n" + "="*80)
-        print("Custom Query")
-        print("="*80 + "\n")
-        
-        evidence = {}
-        
-        # Get Mode
-        mode = self._get_input("Mode", ['today', 'future'])
-        if mode:
-            evidence['Mode'] = mode
-        
-        # Get Time_Of_Day
-        time = self._get_input("Time_Of_Day", ['peak', 'off_peak'])
-        if time:
-            evidence['Time_Of_Day'] = time
-        
-        # Get Station_Type
-        station = self._get_input("Station_Type", ['interchange', 'regular', 'airport'])
-        if station:
-            evidence['Station_Type'] = station
-        
-        if not evidence:
-            print("\nNo evidence provided. Cannot perform inference.")
-            return
-        
-        # Query
-        result, steps = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
-        
-        # Show recommendation
-        print(f"\n{'='*80}")
-        print("Reccommendations")
-        print(f"{'='*80}\n")
-        
+        # Interpretation
         max_risk = max(result.items(), key=lambda x: x[1])
-        if max_risk[0] == 'high' and max_risk[1] > 0.5:
-            print("High Crowding Risk")
-            print("   Recommendations:")
-            print("   • Consider alternative routes")
-            print("   • Allow extra travel time")
-            print("   • Avoid peak hours if possible")
-        elif max_risk[0] == 'low' and max_risk[1] > 0.5:
-            print("Low Crowding Risk")
-            print("   Good time to travel!")
-        else:
-            print("Moderate Crowding Risk")
-            print("   Normal travel conditions expected")
-    
-    def predefined_scenarios(self):
-        """Run predefined test scenarios"""
-        print("\n" + "="*80)
-        print("Predefined Scenarios")
-        print("="*80 + "\n")
+        print(f"\n→ Most likely: {max_risk[0].upper()} risk ({max_risk[1]:.1%})")
         
-        scenarios = [
-            ("Today Peak Interchange", {'Mode': 'today', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
-            ("Future Peak Interchange", {'Mode': 'future', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
-            ("Today Off-Peak Airport", {'Mode': 'today', 'Time_Of_Day': 'off_peak', 'Station_Type': 'airport'}),
-            ("Future Off-Peak Airport", {'Mode': 'future', 'Time_Of_Day': 'off_peak', 'Station_Type': 'airport'}),
-        ]
-        
-        print("Available scenarios:")
-        for i, (name, evidence) in enumerate(scenarios, 1):
-            evidence_str = ', '.join([f"{k}={v}" for k, v in evidence.items()])
-            print(f"  {i}. {name}: {evidence_str}")
-        
-        choice = input("\nSelect scenario (1-4) or 'a' for all: ").strip()
-        
-        if choice == 'a':
-            for name, evidence in scenarios:
-                print(f"\n{'='*80}")
-                print(f"Scenario: {name}")
-                print(f"{'='*80}")
-                result, _ = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
-                input("\nPress Enter to continue...")
-        elif choice in ['1', '2', '3', '4']:
-            name, evidence = scenarios[int(choice) - 1]
-            print(f"\n{'='*80}")
-            print(f"Scenario: {name}")
-            print(f"{'='*80}")
-            result, _ = self.bn.infer(evidence, 'Crowding_Risk', show_steps=True)
-    
-    def compare_multiple_scenarios(self):
-        """Compare predefined scenarios"""
-        print("\n" + "="*80)
-        print("Scenario Comparison")
-        print("="*80 + "\n")
-        
-        scenarios = [
-            ("Today Peak Interchange", {'Mode': 'today', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
-            ("Future Peak Interchange", {'Mode': 'future', 'Time_Of_Day': 'peak', 'Station_Type': 'interchange'}),
-            ("Today Off-Peak Regular", {'Mode': 'today', 'Time_Of_Day': 'off_peak', 'Station_Type': 'regular'}),
-            ("Future Off-Peak Regular", {'Mode': 'future', 'Time_Of_Day': 'off_peak', 'Station_Type': 'regular'}),
-        ]
-        
-        self.bn.compare_scenarios(scenarios, 'Crowding_Risk')
-    
-    def show_cpt(self):
-        """Show CPT for a specific variable"""
-        print("\n" + "="*80)
-        print("Conditional Probability Tables")
-        print("="*80 + "\n")
-        
-        print("Available variables:")
-        for i, var in enumerate(sorted(self.bn.variables), 1):
-            print(f"  {i}. {var}")
-        
-        choice = input("\nSelect variable (1-7): ").strip()
-        if choice.isdigit() and 1 <= int(choice) <= 7:
-            var = sorted(self.bn.variables)[int(choice) - 1]
-            self.bn.cpts[var].print_table()
-    
-    def _get_input(self, variable: str, options: List[str]) -> Optional[str]:
-        """Get input for a variable"""
-        print(f"\n{variable} options: {', '.join(options)}")
-        value = input(f"Enter {variable} (or press Enter to skip): ").strip().lower()
-        
-        if not value:
-            return None
-        
-        if value in options:
-            return value
-        
-        # Try partial match
-        matches = [opt for opt in options if opt.startswith(value)]
-        if len(matches) == 1:
-            print(f"  Interpreting as: {matches[0]}")
-            return matches[0]
-        
-        print(f"  Invalid value. Skipping {variable}.")
-        return None
+        return result
 
+
+def run_required_scenarios():
+    """Run the 5+ required scenarios with Today vs Future comparisons"""
+    
+    print("\n" + "╔" + "="*78 + "╗")
+    print("║" + " "*78 + "║")
+    print("║" + "BAYESIAN NETWORK: Crowding Risk Analysis".center(78) + "║")
+    print("║" + "Changi Airport-T5 Corridor".center(78) + "║")
+    print("║" + " "*78 + "║")
+    print("╚" + "="*78 + "╝")
+    
+    bn = BayesianNetwork()
+    
+    # Store results for comparison
+    results = {}
+    
+    # Scenario 1: Rainy evening + reduced service (Today)
+    results['S1'] = bn.run_scenario(
+        "1. Rainy Evening + Reduced Service (TODAY MODE)",
+        {
+            'Weather': 'rainy',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'reduced'
+        }
+    )
+    
+    # Scenario 2: Clear morning weekday + normal service (Today)
+    results['S2'] = bn.run_scenario(
+        "2. Clear Morning Weekday + Normal Service (TODAY MODE)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'morning',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'normal'
+        }
+    )
+    
+    # Scenario 3: Weekend afternoon + normal service (Today)
+    results['S3'] = bn.run_scenario(
+        "3. Weekend Afternoon + Normal Service (TODAY MODE)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'afternoon',
+            'Day_Type': 'weekend',
+            'Network_Mode': 'today',
+            'Service_Status': 'normal'
+        }
+    )
+    
+    # Scenario 4: Disrupted service near airport corridor (Today)
+    results['S4'] = bn.run_scenario(
+        "4. Disrupted Service - Airport Corridor (TODAY MODE)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'disrupted'
+        }
+    )
+    
+    # Scenario 5: Clear evening + normal service (TODAY vs FUTURE comparison)
+    results['S5a'] = bn.run_scenario(
+        "5a. Clear Evening + Normal Service (TODAY MODE - Baseline)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'normal'
+        }
+    )
+    
+    results['S5b'] = bn.run_scenario(
+        "5b. Clear Evening + Normal Service (FUTURE MODE - With TELe/CRL)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'future',
+            'Service_Status': 'normal'
+        }
+    )
+    
+    # Scenario 6: Rainy evening + reduced service (TODAY vs FUTURE comparison)
+    results['S6a'] = bn.run_scenario(
+        "6a. Rainy Evening + Reduced Service (TODAY MODE - Baseline)",
+        {
+            'Weather': 'rainy',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'reduced'
+        }
+    )
+    
+    results['S6b'] = bn.run_scenario(
+        "6b. Rainy Evening + Reduced Service (FUTURE MODE - With TELe/CRL)",
+        {
+            'Weather': 'rainy',
+            'Time_Of_Day': 'evening',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'future',
+            'Service_Status': 'reduced'
+        }
+    )
+    
+    # Scenario 7: Morning commute disruption (Today vs Future comparison)
+    results['S7a'] = bn.run_scenario(
+        "7a. Morning Commute + Disrupted Service (Today)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'morning',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'today',
+            'Service_Status': 'disrupted'
+        }
+    )
+    
+    results['S7b'] = bn.run_scenario(
+        "7b. Morning Commute + Disrupted Service (Future)",
+        {
+            'Weather': 'clear',
+            'Time_Of_Day': 'morning',
+            'Day_Type': 'weekday',
+            'Network_Mode': 'future',
+            'Service_Status': 'disrupted'
+        }
+    )
+    
+    # Print comprehensive comparison analysis
+    print(f"\n\n{'='*80}")
+    print("Comparative Analysis: Today vs Future Mode")
+    print(f"{'='*80}\n")
+    
+    comparisons = [
+        ("Clear Evening + Normal Service", 'S5a', 'S5b'),
+        ("Rainy Evening + Reduced Service", 'S6a', 'S6b'),
+        ("Morning Commute + Disrupted Service", 'S7a', 'S7b')
+    ]
+    
+    for scenario_name, today_key, future_key in comparisons:
+        print(f"\n{scenario_name}:")
+        print("-" * 60)
+        
+        today = results[today_key]
+        future = results[future_key]
+        
+        print(f"{'Risk Level':<15} {'Today':>15} {'Future':>15} {'Change':>15}")
+        print("-" * 60)
+        
+        for risk in ['low', 'medium', 'high']:
+            change = future[risk] - today[risk]
+            arrow = "↑" if change > 0 else "↓" if change < 0 else "="
+            print(f"{risk.capitalize():<15} {today[risk]:>14.1%} {future[risk]:>14.1%} {arrow} {abs(change):>13.1%}")
+        
+        # Explanation
+        print("\nExplanation:")
+        if future['high'] < today['high']:
+            print(f"  Future mode shows LOWER high-risk probability ({today['high']:.1%} → {future['high']:.1%})")
+            print("    Reason: Terminal 5 provides additional capacity and route options")
+        elif future['high'] > today['high']:
+            print(f"  Future mode shows HIGHER high-risk probability ({today['high']:.1%} → {future['high']:.1%})")
+            print("    Reason: Systems integration works during TELe/CRL implementation")
+        else:
+            print(f"  = Similar risk levels in both modes")
 
 if __name__ == "__main__":
-    app = InteractiveBayesianNetwork()
-    app.run()
+    run_required_scenarios()
