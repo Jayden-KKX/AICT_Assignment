@@ -73,7 +73,7 @@ def requirement_1_search_algorithms():
         
         searcher = MRTRouteSearch(network)
         
-        print("Route: Changi Airport → City Hall\n")
+        print("Route: Changi Airport → Bugis\n")
         
         results = searcher.compare_all_algorithms("CG2", "EW12/DT14")
         
